@@ -20,51 +20,24 @@ namespace VAU.Web.CommonCode
         /// <param name="path">File path</param>
         public static void Download(HttpResponse response, string path)
         {
-            Stream istream = null;
-            byte[] buffer = new byte[10000];
-            int length;
-            long dataToRead;
-
             try
             {
+                var pushbyte = File.ReadAllBytes(path);
                 FileInfo fileInfo = new FileInfo(path);
-                var filename = fileInfo.Name;
-                istream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                dataToRead = istream.Length;
                 response.Clear();
                 response.ClearHeaders();
                 response.ClearContent();
                 response.ContentType = PageContentType.GetConteneType(fileInfo.Extension); // file type
-                response.AddHeader("Content-Length", dataToRead.ToString());
-                response.AddHeader(
-                    "Content-Disposition",
-                    "attachment; filename=" + HttpUtility.UrlEncode(filename, System.Text.Encoding.UTF8).Replace("+", "%20"));
-                while (dataToRead > 0)
-                {
-                    if (response.IsClientConnected)
-                    {
-                        length = istream.Read(buffer, 0, 10000);
-                        response.OutputStream.Write(buffer, 0, length);
-                        response.Flush();
-                        buffer = new byte[10000];
-                        dataToRead = dataToRead - length;
-                    }
-                    else
-                    {
-                        dataToRead = -1;
-                    }
-                }
+                response.AddHeader("Content-Length", pushbyte.Length.ToString());
+                response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode(fileInfo.Name, System.Text.Encoding.UTF8).Replace("+", "%20"));
+
+                response.OutputStream.Write(pushbyte, 0, pushbyte.Length);
+                response.Flush();
             }
             catch (Exception ex)
             {
+                PageBase.Log.Error("System log : " + ex);
                 throw ex;
-            }
-            finally
-            {
-                if (istream != null)
-                {
-                    istream.Close();
-                }
             }
         }
     }
