@@ -31,8 +31,11 @@ namespace VAU.Web.CommonCode
                 response.AddHeader("Content-Length", pushbyte.Length.ToString());
                 response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode(fileInfo.Name, System.Text.Encoding.UTF8).Replace("+", "%20"));
 
-                response.OutputStream.Write(pushbyte, 0, pushbyte.Length);
-                response.Flush();
+                response.BinaryWrite(pushbyte);
+                if (response.IsClientConnected)
+                {
+                    response.Flush();
+                }
             }
             catch (Exception ex)
             {
