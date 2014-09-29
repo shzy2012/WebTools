@@ -25,7 +25,7 @@ namespace VAU.Web.CommonCode
                 //// uncomment this line if you want the XML written out to the outputDir
                 //// xlPackage.DebugMode = true; 
                 //// get handle to the existing worksheet
-                var worksheet = xlpackage.Workbook.Worksheets.Add("BOM");
+                var worksheet = xlpackage.Workbook.Worksheets.Add("BOMList");
 
                 // Create Headers and format them
                 var properties = new string[]
@@ -52,8 +52,19 @@ namespace VAU.Web.CommonCode
                 {
                     worksheet.Cells[1, i + 1].Value = properties[i];
                     worksheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(184, 204, 228));
+                    worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 32, 96));
                     worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                    worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(Color.White);
+                }
+
+                worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                worksheet.Row(1).Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                worksheet.Row(1).Height = 30.00D;
+                worksheet.Cells["A1:O1"].AutoFilter = true;
+
+                for (int i = 1; i < properties.Length; i++)
+                {
+                    worksheet.Column(i).AutoFit();
                 }
 
                 int row = 2;
@@ -63,24 +74,31 @@ namespace VAU.Web.CommonCode
 
                     // order properties
                     worksheet.Cells[row, col].Value = order.GWMasterSKU;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.GKMasterSKU;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.ProductSpecialist;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.USAManager;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.CustomerMaster;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.SupplierName;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.SKUCount;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.ReportYear;
@@ -93,26 +111,33 @@ namespace VAU.Web.CommonCode
                     col++;
 
                     worksheet.Cells[row, col].Value = order.Created;
-                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy-mm-dd";
+                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy/mm/dd HH:mm";
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.StatusUpdateDate;
-                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy-mm-dd";
+                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy/mm/dd HH:mm";
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.Interval1;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.SampleApproveDate;
-                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy-mm-dd";
+                    worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy/mm/dd HH:mm";
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     worksheet.Cells[row, col].Value = order.Interval2;
+                    worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
                     // next row
                     row++;
                 }
+
+                worksheet.View.FreezePanes(2, 1);
 
                 xlpackage.Save();
             }
@@ -124,7 +149,7 @@ namespace VAU.Web.CommonCode
             response.ClearContent();
             response.ContentType = "application/vnd.ms-excel";
             response.AddHeader("Content-Length", bytes.Length.ToString());
-            response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode("VAUBOM.xlsx", System.Text.Encoding.UTF8).Replace("+", "%20"));
+            response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode("BOM.xlsx", System.Text.Encoding.UTF8).Replace("+", "%20"));
 
             response.BinaryWrite(bytes);
             if (response.IsClientConnected)
@@ -150,14 +175,19 @@ namespace VAU.Web.CommonCode
                 //// uncomment this line if you want the XML written out to the outputDir
                 //// xlPackage.DebugMode = true; 
                 //// get handle to the existing worksheet
-                var worksheet = xlpackage.Workbook.Worksheets.Add("BOM");
+                var worksheet = xlpackage.Workbook.Worksheets.Add("sheet");
                 for (int i = 0; i < properties.Count; i++)
                 {
                     worksheet.Cells[1, i + 1].Value = properties[i];
                     worksheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(184, 204, 228));
+                    worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(0, 32, 96));
                     worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                    worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(Color.White);
                 }
+
+                worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                worksheet.Row(1).Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                worksheet.Row(1).Height = 30.00D;
 
                 int row = 2;
                 foreach (T item in list)
@@ -174,7 +204,7 @@ namespace VAU.Web.CommonCode
                             var currenttype = props[i].PropertyType.GenericTypeArguments[0].FullName;
                             if (currenttype == typeof(DateTime).FullName)
                             {
-                                worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy-mm-dd";
+                                worksheet.Cells[row, col].Style.Numberformat.Format = "yyyy/mm/dd HH:mm";
                             }
 
                             if (currenttype == typeof(decimal).FullName)
@@ -186,6 +216,8 @@ namespace VAU.Web.CommonCode
                             {
                                 worksheet.Cells[row, col].Style.Numberformat.Format = "#,##0.0";
                             }
+
+                            worksheet.Cells[row, col].Style.ShrinkToFit = true;
                         }
 
                         col++;
@@ -195,6 +227,7 @@ namespace VAU.Web.CommonCode
                     row++;
                 }
 
+                worksheet.View.FreezePanes(2, 1);
                 xlpackage.Save();
             }
 
@@ -205,7 +238,7 @@ namespace VAU.Web.CommonCode
             response.ClearContent();
             response.ContentType = "application/vnd.ms-excel";
             response.AddHeader("Content-Length", bytes.Length.ToString());
-            response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode("VAUBOM.xlsx", System.Text.Encoding.UTF8).Replace("+", "%20"));
+            response.AddHeader("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode("general.xlsx", System.Text.Encoding.UTF8).Replace("+", "%20"));
 
             response.BinaryWrite(bytes);
             if (response.IsClientConnected)
