@@ -6,11 +6,16 @@ namespace VAU.Web.CommonCode
     using System.Collections.Generic;
     using System.Drawing;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using System.Web;
 
     using OfficeOpenXml;
     using OfficeOpenXml.Style;
+
+    using VAU.Domain;
+    using VAU.Dto;
+    using VAU.EnumType;
 
     #endregion
     public class ExportManager
@@ -46,6 +51,7 @@ namespace VAU.Web.CommonCode
                         "Interval1",
                         "SampleApproveDate",
                         "Interval2",
+                        "ActiveStatus"
                     };
 
                 for (int i = 0; i < properties.Length; i++)
@@ -60,7 +66,7 @@ namespace VAU.Web.CommonCode
                 worksheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
                 worksheet.Row(1).Style.VerticalAlignment = ExcelVerticalAlignment.Center;
                 worksheet.Row(1).Height = 30.00D;
-                worksheet.Cells["A1:O1"].AutoFilter = true;
+                worksheet.Cells["A1:P1"].AutoFilter = true;
 
                 for (int i = 1; i < properties.Length; i++)
                 {
@@ -133,6 +139,9 @@ namespace VAU.Web.CommonCode
                     worksheet.Cells[row, col].Style.ShrinkToFit = true;
                     col++;
 
+                    worksheet.Cells[row, col].Value = order.ActiveStatus;
+                    col++;
+
                     // next row
                     row++;
                 }
@@ -156,6 +165,183 @@ namespace VAU.Web.CommonCode
             {
                 response.Flush();
             }
+        }
+
+        public static void ExportPaymnetToCSV(System.Web.HttpResponse response, IList<Bank> banks, IList<PaySetupPaymentHeader> payHead, IList<PaySetupPaymentLine> payLine)
+        {
+            byte[] bytes = new byte[0];
+            using (var stream = new MemoryStream())
+            {
+                using (TextWriter writer = new StreamWriter(stream))
+                {
+                    #region MyRegion
+
+                    // 62 
+                    var columns = new string[]
+                    {
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty,
+                          string.Empty
+                    };
+                    #endregion
+
+                    List<string[]> dataList = new List<string[]>();
+                    var firRow = (string[])columns.Clone();
+                    firRow[0] = "H";
+                    firRow[1] = "P";
+                    dataList.Add(firRow);
+
+                    var suppliers = payHead.Select(x => new { x.SupplierId }).Distinct();
+                    foreach (var supllier in suppliers)
+                    {
+                        #region Head
+
+                        var bank = banks.FirstOrDefault(x => x.SupplierId == supllier.SupplierId);
+                        var tmpHead = (string[])columns.Clone();
+                        var curDate = DateTime.Now.ToString("dd/MM/yyyy");
+                        tmpHead[0] = "P";
+                        tmpHead[1] = "TT";
+                        tmpHead[2] = "ON";
+                        tmpHead[6] = "HK";
+                        tmpHead[7] = "HKG";
+                        tmpHead[9] = curDate;
+                        tmpHead[22] = "0";
+                        tmpHead[29] = "0";
+                        tmpHead[30] = "0";
+                        tmpHead[33] = "0";
+                        tmpHead[34] = "0";
+                        tmpHead[35] = "0";
+                        tmpHead[36] = "4";
+                        tmpHead[37] = "USD";
+                        tmpHead[39] = "C";
+                        tmpHead[40] = "P";
+                        tmpHead[48] = "O";
+                        tmpHead[61] = bank.Id.ToString();
+                        #endregion
+
+                        #region Line
+
+                        var curHeads = payHead.Where(x => x.SupplierId == supllier.SupplierId);
+                        tmpHead[20] = curHeads.First().SNReference;
+                        tmpHead[38] = curHeads.Sum(x => x.FinalPaidAmount).GetValueOrDefault().ToString();
+                        dataList.Add(tmpHead);
+
+                        foreach (var head in curHeads)
+                        {
+                            var tmpLine = (string[])columns.Clone();
+                            tmpLine[0] = "I";
+
+                            if (head.OrderType == "PO")
+                            {
+                                tmpLine[1] = "DEPOSIT";
+                            }
+                            else if (head.OrderType == "Prepay")
+                            {
+                                tmpLine[1] = "PREPAY";
+                            }
+                            else
+                            {
+                                tmpLine[1] = "INVOICE";
+                            }
+
+                            tmpLine[2] = curDate;
+                            tmpLine[3] = head.BillNum;
+                            tmpLine[4] = head.FinalPaidAmount.GetValueOrDefault().ToString();
+                            dataList.Add(tmpLine);
+                        }
+
+                        #endregion
+                    }
+
+                    var lastRow = (string[])columns.Clone();
+                    lastRow[0] = "T";
+                    lastRow[1] = suppliers.Count().ToString();
+                    lastRow[2] = payHead.Sum(x => x.FinalPaidAmount.GetValueOrDefault()).ToString();
+                    dataList.Add(lastRow);
+
+                    foreach (var item in dataList)
+                    {
+                        writer.WriteLine(string.Join(",", item));
+                    }
+                }
+
+                bytes = stream.ToArray();
+            }
+
+            response.Clear();
+            response.ClearHeaders();
+            response.ClearContent();
+            response.ContentType = "text/csv";
+            response.AddHeader("Content-Length", bytes.Length.ToString());
+            response.AddHeader("Content-Disposition", string.Format("attachment;filename=Payment {0}.csv", DateTime.Now.ToString("yyyy-MM-dd")));
+
+            response.BinaryWrite(bytes);
+            if (response.IsClientConnected)
+            {
+                response.Flush();
+            }
+
+            response.End();
         }
 
         public static void ExportToExcel<T>(System.Web.HttpResponse response, IList<T> list)
