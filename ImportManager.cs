@@ -164,7 +164,105 @@ namespace Storage.Services.ExportImport
             return list;
         }
 
+public static IList<HawbExportInfo> ExportHawbFromXlsx(Stream stream)
+        {
+            var list = new List<HawbExportInfo>();
+            using (var xlPackage = new ExcelPackage(stream))
+            {
+                //the columns
+                var properties = new string[]
+                                    {
+                                        "ETD",
+                                        "C/C",
+                                        "W/H",
+                                        "W/H No.",
+                                        "Shipper",
+                                        "HAWB No.",
+                                        "Date",
+                                        "Flight",
+                                        "MAWB No.",
+                                        "Pcs",
+                                        "Weight",
+                                        "M3",
+                                        "M.Pcs",
+                                        "AWB",
+                                        "Actual",
+                                        "M3",
+                                        "M.Dest",
+                                        "Dims",
+                                        "ULD",
+                                        "RATE" 
+                                    };
 
+                var sheets = xlPackage.Workbook.Worksheets.Count;
+                for (int i = 1; i <= sheets; i++)
+                {
+                    var currentSheet = xlPackage.Workbook.Worksheets[i];
+                    if (currentSheet.Name != "7.10")
+                    {
+                        continue;
+                    }
+
+                    List<CellHome> titles = new List<CellHome>();
+                    var cells = currentSheet.Cells["A1:V15"];
+                    for (int j = 0; j < properties.Length; j++)
+                    {
+                        var v = cells.First(x => x.Text == properties[j]);
+                        titles.Add(new CellHome()
+                        {
+                            SheetName = currentSheet.Name,
+                            Key = properties[j],
+                            Address = v.Address,
+                            FullAddress = v.FullAddress,
+                            StartRow = v.Start.Row,
+                            StartColumn = v.Start.Column,
+                            Meger = v.Merge
+                        }
+                                   );
+                    }
+
+                    int spaceCount = 1;
+                    int iRow = titles.Max(x => x.StartRow) + 1;
+                    while (true)
+                    {
+                        bool allColumnsAreEmpty = true;
+                        for (var j = 1; j <= titles.Count; j++)
+                        {
+                            if (currentSheet.Cells[iRow, j].Value != null && !String.IsNullOrEmpty(currentSheet.Cells[iRow, j].Value.ToString()))
+                            {
+                                allColumnsAreEmpty = false;
+                                break;
+                            }
+                        }
+
+                        if (allColumnsAreEmpty)
+                        {
+                            if (spaceCount >= 10)
+                            {
+                                break;
+                            }
+
+                            spaceCount++;
+                            iRow++;
+                            continue;
+                        }
+
+                        var Shipper = currentSheet.Cells[iRow, titles[4].StartColumn].Text;
+                        var HAWBNo = currentSheet.Cells[iRow, titles[5].StartColumn].Text + currentSheet.Cells[iRow, titles[5].StartColumn + 1].Text;
+                        list.Add(new HawbExportInfo()
+                        {
+                            Shipper = Shipper,
+                            HAWBNo = HAWBNo
+                        });
+
+                        iRow++;
+                        spaceCount = 1;
+                    }
+                }
+            }
+
+            return list;
+        }
 
         /// <summary>
         /// format String to Int, if format failed return null
@@ -210,5 +308,16 @@ namespace Storage.Services.ExportImport
         }
         #endregion
 
+    }
+    
+    public class CellHome
+    {
+        public string SheetName { get; set; }
+        public string Key { get; set; }
+        public string Address { get; set; }
+        public string FullAddress { get; set; }
+        public int StartRow { get; set; }
+        public int StartColumn { get; set; }
+        public bool Meger { get; set; }
     }
 }
