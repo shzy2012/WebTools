@@ -305,7 +305,7 @@ namespace VAU.Web.CommonCode
                             }
 
                             tmpLine[2] = curDate;
-                            tmpLine[3] = head.BillNum;
+                            tmpLine[3] = head.BillNum.Replace(',', '_').Replace('\'', '_').Replace('"', '_'); //// Deal  , 92:' "
                             tmpLine[4] = head.FinalPaidAmount.GetValueOrDefault().ToString();
                             dataList.Add(tmpLine);
                         }
