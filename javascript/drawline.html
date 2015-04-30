@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <style>
+        html {
+            background: #000;
+        }
+    </style>
+    <script src="js/jquery.js"></script>
+
+
+</head>
+<body>
+    <canvas width="1000" height="1000" style="background-color:white; margin:0px; padding:0px;" id="drawing"></canvas>
+
+    <script type="text/javascript">
+
+        var canvas = $("#drawing");
+        var context = canvas[0].getContext('2d');
+        var xMax = 1000, yMax = 1000;
+        var xoff, yoff;
+        var drawing;
+        var x, y;
+        var arrowLen = 8; // length of arrow.
+
+        function mDown(e) {
+            var pos = canvas.position();
+            xoff = pos.top;
+            yoff = pos.left;
+            var p = getOffset(e);
+            if (p[0] < 0 || p[1] < 0) {
+                return;
+            }
+            if (p[0] > xMax || p[1] > yMax) {
+                return;
+            }
+
+            x = p[0];
+            y = p[1];
+            drawing = true;
+            return nothing(e);
+        };
+
+        function mMove(e) {
+
+            if (!drawing) {
+                return nothing(e);
+            }
+            var p = getOffset(e);
+            if (p[0] < 0) p[0] = 0;
+            if (p[1] < 0) p[1] = 0;
+            if (p[0] > xMax) p[0] = xMax;
+            if (p[1] > yMax) p[1] = yMax;
+
+            drawLine(context, x, y, p[0], p[1]);
+        };
+
+        function mUp(e) {
+
+            if (drawing) {
+                var p = getOffset(e);
+                drawing = false;
+                return mMove(e);
+            }
+        };
+
+        function getOffset(e) {
+            return [e.pageX - xoff, e.pageY - yoff];
+        };
+
+        function nothing(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        };
+
+        function drawLine(canvas, x1, y1, x2, y2) {
+            canvas.clearRect(0, 0, xMax, yMax);
+            canvas.beginPath();
+            var dX = x2 - x1;
+            var dY = y2 - y1;
+
+            console.log(dX, dY);
+            if (Math.abs(dX) <= 5 && Math.abs(dY) <= 5) { // Don't draw if the line too short.
+                return false;
+            }
+            if (dX == 0 && dY == 0) { // Don't drwa if not move.
+                return false;
+            }
+
+            var angle = Math.atan2(dY, dX);
+            canvas.moveTo(x1, y1);
+            canvas.lineTo(x2, y2);
+            canvas.lineTo(x2 - arrowLen * Math.cos(angle - Math.PI / 6), y2 - arrowLen * Math.sin(angle - Math.PI / 6));
+            console.log(angle, Math.PI / 6);
+            canvas.moveTo(x2, y2);
+            canvas.lineTo(x2 - arrowLen * Math.cos(angle + Math.PI / 6), y2 - arrowLen * Math.sin(angle + Math.PI / 6));
+            console.log(angle, Math.PI / 6);
+            canvas.stroke();
+        };
+
+        $(canvas).mousedown(mDown).mousemove(mMove).mouseup(mUp);
+
+    </script>
+
+</body>
+</html>
