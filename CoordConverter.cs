@@ -145,10 +145,8 @@ namespace Project.Utility {
             return ret;
         }
     }
-}
-
-
-
+    
+    
 public class DotArg {
         /// <summary>
         /// 构造函数
@@ -167,32 +165,27 @@ public class DotArg {
         /// <summary>
         /// 经度
         /// </summary>
-        [DataMember]
         public double Lat { get; set; }
 
         /// <summary>
         /// 维度
         /// </summary>
-        [DataMember]
         public double Lng { get; set; }
 
         /// <summary>
         /// 精度
         /// </summary>
-        [DataMember]
         public double Accuracy { get; set; }
 
         /// <summary>
         /// 定位类型
         /// </summary>
-        [DataMember]
         public LocaTypeEnum LocaType { get; set; }
 
         private string desc = "";
         /// <summary>
         /// 具体地址
         /// </summary>
-        [DataMember]
         public string Desc {
             get {
                 return desc;
@@ -210,3 +203,38 @@ public class DotArg {
             return string.Concat(Lat, ',', Lng);
         }
     }
+
+
+    /// <summary>
+    /// 定位类型
+    /// </summary>
+    public enum LocaTypeEnum {
+        /// <summary>
+        /// gps
+        /// </summary>
+        GPS = 0,
+        /// <summary>
+        /// lbs
+        /// </summary>
+        LBS = 1,
+        /// <summary>
+        /// wifi
+        /// </summary>
+        WIFI = 2,
+        /// <summary>
+        /// last
+        /// </summary>
+        LAST = 3,
+        /// <summary>
+        /// most
+        /// </summary>
+        MOST = 4,
+        /// <summary>
+        /// 无效点
+        /// </summary>
+        Invalid = 5
+    }
+}
+
+
+
